@@ -18,7 +18,7 @@ import { Footer } from "./components/Footer";
 import { BookingModal } from "./components/BookingModal";
 
 // ==================== DATA IMPORT ====================
-import { indiaPackages } from "./data/travelData";
+import { indiaPackages } from "./data/travelData.js";
 
 // ==================== HOMEPAGE COMPONENT ====================
 const HomePage = () => {
