@@ -125,3 +125,16 @@
 .animate-fade-right {
   animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+/* --- FIX FOR BLURRY ANIMATIONS --- */
+.animate-fade-up, 
+.animate-slide-in, 
+.animate-slide-left, 
+.animate-fade-scale, 
+.animate-float, 
+.animate-fade-right {
+    will-change: transform, opacity;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden; /* Safari ke liye */
+    -webkit-perspective: 1000;
+    -webkit-transform: translate3d(0, 0, 0);
+}
