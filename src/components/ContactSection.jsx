@@ -154,7 +154,7 @@ export const ContactSection = () => {
             </div>
 
             {/* Image Banner */}
-            <div className="hidden lg:block relative rounded-3xl overflow-hidden shadow-xl h-64 group">
+            <div className="relative rounded-3xl overflow-hidden shadow-xl h-64 group">
               <img
                 src="https://i.pinimg.com/736x/b8/ce/c8/b8cec8da6607853df2c2c10ac0b2d183.jpg"
                 alt="Luxury Travel"
