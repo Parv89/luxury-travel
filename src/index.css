@@ -187,4 +187,22 @@ code {
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
 }
+/* =========================================
+   ⚡ EMERGENCY MOBILE RESPONSIVE FIX
+   ========================================= */
+@media (max-width: 768px) {
+  html, body, #root, .App {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  
+  /* Kisi bhi element ko screen se bahar jaane se rokne ke liye */
+  div, section, header, main, footer, img {
+    max-width: 100% !important;
+  }
 
+  /* Text size ko mobile ke mutabik control karne ke liye */
+  h1 { font-size: 2.25rem !important; line-height: 2.5rem !important; }
+  h2 { font-size: 1.75rem !important; }
+}
