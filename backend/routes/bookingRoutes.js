@@ -7,27 +7,38 @@ const { sendBookingTicket } = require('../utils/emailService');
 const router = express.Router();
 
 // Create a new booking
+
 router.post('/', async (req, res) => {
   try {
     const booking = await Booking.create(req.body);
-    try {
-  await sendBookingTicket(booking);
-  console.log('Booking ticket email sent successfully.');
-} catch (emailError) {
-  console.error('Booking saved, but ticket email failed:', emailError.message);
-}
 
+    // Booking response turant bhejo
     res.status(201).json({
       message: 'Booking created successfully!',
       booking,
     });
+
+    // Email background mein bhejne ki koshish karo
+    sendBookingTicket(booking)
+      .then(() => {
+        console.log('Booking ticket email sent successfully.');
+      })
+      .catch((emailError) => {
+        console.error(
+          'Booking saved, but ticket email failed:',
+          emailError.message
+        );
+      });
   } catch (error) {
-    res.status(400).json({
-      message: 'Failed to create booking',
-      error: error.message,
-    });
+    if (!res.headersSent) {
+      res.status(400).json({
+        message: 'Failed to create booking',
+        error: error.message,
+      });
+    }
   }
 });
+
 
 // Get all bookings (Admin only)
 router.get('/', adminAuth, async (req, res) => {
