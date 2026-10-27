@@ -16,6 +16,7 @@ import { Testimonials } from "./components/Testimonials";
 import { ContactSection } from "./components/ContactSection";
 import { Footer } from "./components/Footer";
 import { BookingModal } from "./components/BookingModal";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // ==================== DATA IMPORT ====================
 import { indiaPackages } from "./data/travelData.js";
@@ -88,9 +89,10 @@ function App() {
   return (
     <div className="App">
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-        </Routes>
+       <Routes>
+  <Route path="/" element={<HomePage />} />
+  <Route path="/admin" element={<AdminDashboard />} />
+</Routes>
       </BrowserRouter>
     </div>
   );

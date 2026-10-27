@@ -1,16 +1,3 @@
-
-const nodemailer = require('nodemailer');
-
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_APP_PASSWORD,
-  },
-});
-
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>"']/g, (char) => {
     const entities = {
@@ -26,28 +13,23 @@ function escapeHtml(value = '') {
 }
 
 async function sendBookingTicket(booking) {
-  const emailUser = process.env.EMAIL_USER?.trim();
-  const appPassword = process.env.EMAIL_APP_PASSWORD?.replace(/\s/g, '');
+  const apiKey = process.env.RESEND_API_KEY?.trim();
 
-  if (!emailUser || !appPassword) {
-    throw new Error(
-      'Email credentials missing. Check EMAIL_USER and EMAIL_APP_PASSWORD in backend/.env'
-    );
+  if (!apiKey) {
+    throw new Error('RESEND_API_KEY is missing in Render Environment.');
   }
 
-  const mailer = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    auth: {
-      user: emailUser,
-      pass: appPassword,
-    },
-  });
+  if (!booking.email) {
+    throw new Error('Customer email address is missing.');
+  }
 
   const name = escapeHtml(booking.name || 'Valued Guest');
-  const destination = escapeHtml(booking.destination || 'Your Destination');
-  const travelDate = escapeHtml(booking.travelDate || 'Not specified');
+  const destination = escapeHtml(
+    booking.destination || 'Your Destination'
+  );
+  const travelDate = escapeHtml(
+    booking.travelDate || 'Not specified'
+  );
   const guests = escapeHtml(booking.guests ?? 'Not specified');
   const status = escapeHtml(booking.status || 'Pending');
   const bookingId = escapeHtml(booking._id || 'N/A');
@@ -89,24 +71,45 @@ async function sendBookingTicket(booking) {
   </body>
   </html>`;
 
-  await mailer.sendMail({
-    from: `"Luxury Travel Agency" <${emailUser}>`,
-    to: booking.email,
-    subject: `Your Travel Booking Confirmation - ${booking.destination || 'Luxury Travel'}`,
-    text: `Hello ${booking.name || 'Valued Guest'},
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: 'Luxury Travel <onboarding@resend.dev>',
+      to: [booking.email],
+      subject: `Your Travel Booking Confirmation - ${booking.destination || 'Luxury Travel'}`,
+      text: `Hello ${booking.name || 'Valued Guest'},
 
 Your booking has been received.
 
-Booking ID: ${booking._id}
-Destination: ${booking.destination}
-Travel Date: ${booking.travelDate}
-Guests: ${booking.guests}
+Booking ID: ${booking._id || 'N/A'}
+Destination: ${booking.destination || 'Not specified'}
+Travel Date: ${booking.travelDate || 'Not specified'}
+Guests: ${booking.guests ?? 'Not specified'}
 Status: ${booking.status || 'Pending'}
 
 Thank you for choosing Luxury Travel Agency.`,
-    html,
+      html,
+    }),
   });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(
+      `Resend email failed (${response.status}): ${result.message || JSON.stringify(result)}`
+    );
+  }
+
+  console.log('Booking email sent successfully:', result.id);
+  return result;
 }
 
 module.exports = { sendBookingTicket };
+
+
+
 

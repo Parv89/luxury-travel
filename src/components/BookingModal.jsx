@@ -74,31 +74,78 @@ export const BookingModal = ({ isOpen, onClose, selectedItem }) => {
     onClose();
   };
 
+  
   // ================= SUBMIT =================
-  const handleSubmitBooking = (e) => {
+  const handleSubmitBooking = async (e) => {
     e.preventDefault();
-    if (!validateStep()) {
-      setError("Please complete your payment details.");
+    setError("");
+
+    if (
+      !bookingForm.fullName.trim() ||
+      !bookingForm.email.trim() ||
+      !bookingForm.checkIn ||
+      !selectedItem
+    ) {
+      setError("Please complete your name, email, and check-in date.");
+      return;
+    }
+
+    if (
+      bookingForm.checkOut &&
+      bookingForm.checkOut < bookingForm.checkIn
+    ) {
+      setError("Check-out date cannot be before check-in date.");
       return;
     }
 
     setIsSubmitting(true);
-    
-    // Luxury custom animation delay
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const response = await fetch("https://luxury-travel-3mio.onrender.com/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: bookingForm.fullName.trim(),
+          email: bookingForm.email.trim(),
+          destination: selectedItem.name,
+          travelDate: bookingForm.checkIn,
+          guests: Number(bookingForm.travelers || 1),
+        }),
+      });
+
+      console.log("Booking response status:", response.status);
+      console.log("Booking response data:", data);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Could not save booking.");
+      }
+
       setIsConfirmed(true);
-      
-      // Auto close after success
+
       setTimeout(() => {
         handleClose();
       }, 3000);
-    }, 2000);
+    } catch (error) {
+      setError(
+        error.message === "Failed to fetch"
+          ? "Cannot connect to the backend. Please check that the server is running."
+          : error.message
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
 
   // ================= PRICE CALCULATIONS =================
   const travelersCount = parseInt(bookingForm.travelers || "1", 10);
-  const totalPrice = selectedItem.price * travelersCount;
+ const numericPrice = Number(
+  String(selectedItem.price).replace(/[^0-9.]/g, "")
+);
+const totalPrice = numericPrice * travelersCount;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -119,11 +166,15 @@ export const BookingModal = ({ isOpen, onClose, selectedItem }) => {
               <Check className="w-10 h-10 stroke-[3]" />
             </div>
             <h3 className="text-3xl font-bold text-gray-900" style={{ fontFamily: '"Playfair Display", serif' }}>
-              Booking Confirmed! 🎉
+              Booking Request Confirmed! 🎉
             </h3>
-            <p className="text-gray-600 max-w-md">
-              Thank you for choosing luxury. A premium itinerary and digital tickets have been sent to <span className="font-semibold text-amber-700">{bookingForm.email}</span>.
-            </p>
+           <p className="text-gray-600 max-w-md">
+  Thank you for choosing luxury. Your booking request for{" "}
+  <span className="font-semibold text-amber-700">
+    {selectedItem.name}
+  </span>{" "}
+  has been saved successfully. Our team can review your request.
+</p>
           </div>
         ) : (
           <>
@@ -320,7 +371,7 @@ onChange={(e) => handleInputChange("travelers", e.target.value)}
                       </div>
                       <div className="border-t border-amber-200/60 mt-3 pt-3 flex justify-between font-bold text-base text-gray-900">
                         <span>Grand Total</span>
-                        <span className="text-amber-700 text-lg">${totalPrice.toLocaleString()}</span>
+                        <span className="text-amber-700 text-lg">{selectedItem.price.replace(/[0-9,.]/g, "").trim()} {numericPrice.toLocaleString()}</span>
                       </div>
                     </div>
                   </div>
